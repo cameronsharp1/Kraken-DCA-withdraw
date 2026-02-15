@@ -18,6 +18,9 @@ import requests
 api_url = "https://api.kraken.com"
 api_key = "insert your api key here" # add your api key
 api_sec = "insert your api secret here" # add your api secret
+pair = "XMREUR" # pair to trade
+ticker_pair = "XXMRZEUR" # ticker pair to trade for api
+fiat_invest_amnt = 20 # the amount of fiat to invest
 
 # Authenticated requests should be signed with the "API-Sign" header, using a signature generated with your private key, nonce, encoded payload
 def get_kraken_signature(urlpath, data, secret):
@@ -40,14 +43,14 @@ def kraken_request(uri_path, data, api_key, api_sec):
     return req
 
 # We need the current price of the crypto coin you wanna buy, because on kraken we can only request an order denominated in crypto, not fiat
-def get_xmr_price():
-    resp = requests.get(f'https://api.kraken.com/0/public/Ticker?pair=XXMRZEUR').json() # specify trading pair
-    ask_price = resp['result']['XXMRZEUR']['a'][0] # specify trading pair
+def get_coin_price():
+    resp = requests.get(f'https://api.kraken.com/0/public/Ticker?pair=' + ticker_pair).json()
+    ask_price = resp['result'][ticker_pair]['a'][0]
     return float(ask_price)
    
 # Calculate the cryptocurrency quantity to purchase using your fiat amount and the current coin price
 def calculate_volume_from_price() -> float:
-    volume = 20 / get_xmr_price() # Modify the value in this line to specify the desired investment amount
+    volume = fiat_invest_amnt / get_coin_price()
     return volume
 
 # Construct the request and print the result
@@ -55,7 +58,7 @@ resp = kraken_request('/0/private/AddOrder', {
     "nonce": str(int(1000*time.time())),
     "ordertype": "market",
     "type": "buy",
-    "pair": "XMREUR",  # specify trading pair
+    "pair": pair,
     "volume": calculate_volume_from_price(),
     
 }, api_key, api_sec)
